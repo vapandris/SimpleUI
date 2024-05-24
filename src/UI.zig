@@ -2,11 +2,9 @@ const rl = @import("raylib");
 const std = @import("std");
 
 pub const Button = struct {
-    const str = std.ArrayList(u8);
     const Pos = struct { x: i32, y: i32 };
     const Size = struct { w: i32, h: i32 };
 
-    text: str,
     pos: Pos,
     size: Size,
     fontSize: u8,
@@ -23,13 +21,11 @@ pub const Button = struct {
     isHeld: bool = false,
 
     pub fn init(
-        allocator: std.mem.Allocator,
         pos: Pos,
         size: Size,
         fontSize: u8,
     ) Button {
         var result: Button = .{
-            .text = str.init(allocator),
             .pos = pos,
             .size = size,
             .fontSize = fontSize,
@@ -39,7 +35,7 @@ pub const Button = struct {
     }
 
     pub fn deinit(self: *Button) void {
-        self.*.text.deinit();
+        _ = self;
     }
 
     pub fn draw(self: Button, text: [:0]const u8) void {
@@ -68,7 +64,7 @@ pub const Button = struct {
         );
     }
 
-    pub fn updateClickStatus(self: *Button) enum { clicked, released, nothing } {
+    pub fn update(self: *Button) enum { clicked, released, nothing } {
         if (self.isClicked()) {
             self.*.isHeld = true;
             return .clicked;

@@ -4,6 +4,7 @@ const rl = @import("raylib");
 const std = @import("std");
 
 const UI = @import("UI.zig");
+const Menu = @import("Menu.zig");
 
 var gameState: union(enum) {
     mainMenu,
@@ -22,18 +23,22 @@ pub fn main() anyerror!void {
     rl.setTargetFPS(60);
     rl.setExitKey(.key_null);
 
-    var randomButton = UI.Button.init(std.heap.c_allocator, .{ .x = 600, .y = 20 }, .{ .h = 100, .w = 200 }, 30);
+    // UI-structs:
+    var mainMenu = Menu.MainMenu.init(true);
 
     // Main game loop
     var windowShouldClose = false;
     while (!rl.windowShouldClose() and !windowShouldClose) {
         switch (gameState) {
             .mainMenu => {
-                if (rl.isKeyPressed(.key_p)) {
-                    gameState = .gamePlaying;
-                }
-                if (rl.isKeyPressed(.key_e)) {
-                    windowShouldClose = true;
+                switch (mainMenu.update()) {
+                    .play => {
+                        gameState = .gamePlaying;
+                    },
+                    .exit => {
+                        windowShouldClose = true;
+                    },
+                    .nothing => {},
                 }
             },
             .gamePlaying => {
@@ -46,16 +51,13 @@ pub fn main() anyerror!void {
                     gameState = .gamePlaying;
                 }
                 if (rl.isKeyPressed(.key_m)) {
+                    mainMenu.active = true;
                     gameState = .mainMenu;
                 }
                 if (rl.isKeyPressed(.key_e)) {
                     windowShouldClose = true;
                 }
             },
-        }
-
-        if (randomButton.updateClickStatus() == .clicked) {
-            std.debug.print("clicked!\n", .{});
         }
 
         rl.beginDrawing();
@@ -65,9 +67,7 @@ pub fn main() anyerror!void {
 
         switch (gameState) {
             .mainMenu => {
-                rl.drawText("MainMenu:", 30, 190, 40, rl.Color.dark_gray);
-                rl.drawText("p: play", 30, 230, 30, rl.Color.dark_gray);
-                rl.drawText("e: exit", 30, 260, 30, rl.Color.dark_gray);
+                mainMenu.draw();
             },
             .gamePlaying => {
                 rl.drawText("esc: pause", 30, 30, 30, rl.Color.dark_gray);
@@ -80,8 +80,6 @@ pub fn main() anyerror!void {
                 rl.drawText("e: exit", 30, 120, 30, rl.Color.dark_gray);
             },
         }
-
-        randomButton.draw("Some text");
         //----------------------------------------------------------------------------------
     }
 }
